@@ -2,18 +2,13 @@ import vertexai
 from vertexai.preview.generative_models import GenerativeModel
 from google.genai.types import HttpOptions, Part
 from google import genai
-
-
 from fastapi import FastAPI, Form, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 # from typing import Annotated
 # import datetime
 from starlette.responses import FileResponse 
-
-
-
-
+from google.cloud import firestore
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,10 +26,12 @@ app = FastAPI()
 # mount static files
 #app.mount("/static", StaticFiles(directory="/app/static"), name="static")
 
-templates = Jinja2Templates(directory="/app/template")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="template")
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 def extract_text_from_html(html_content):
     """
     Extract only the visible text content from an HTML string.
@@ -73,11 +70,15 @@ def extract_text_from_html(html_content):
     return text_with_breaks.strip()
 
 
+db = firestore.Client()
+syllabus_collection = db.collection("syllabi")
 
 @app.get("/")
-async def read_root():
+async def read_root(request: Request):
 
-    return FileResponse('index.html')
+  #  return FileResponse('index.html')
+  return templates.TemplateResponse(request= request, name = "index.html")
+
 
 @app.post("/chat")
 async def chat_upload(files: List[UploadFile] = File(...)):
@@ -119,8 +120,11 @@ async def chat_upload(files: List[UploadFile] = File(...)):
         )
 
         print(response.text)
-        
-        return response.text.replace("\n", "<br>")
+        syllabus_collection.add({
+            "filename": file.filename,
+            "description": response.text
+        })
+        return response.text
 
 
 
