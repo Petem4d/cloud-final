@@ -119,11 +119,11 @@ async def chat_upload(files: List[UploadFile] = File(...)):
             contents=[content, prompt],
         )
 
-        print(response.text)
         syllabus_collection.add({
             "filename": file.filename,
             "description": response.text
         })
+        
         return response.text
 
 
