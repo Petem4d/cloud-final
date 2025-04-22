@@ -310,10 +310,20 @@
                 // Format the JSON data with indentation for better readability
                 const formattedData = JSON.stringify(data, null, 2);
                 
-                // Set the content and show the response box
-                responseContent.textContent = formattedData;
+                // Replace escaped newlines with actual HTML line breaks
+                const formattedHtml = formattedData
+                  .replace(/\\n/g, '<br>')
+                  // Also highlight keys for better readability
+                  .replace(/"([^"]+)":/g, '<span class="json-key">"$1":</span>');
+                
+                // Set the content as HTML and show the response box
+                responseContent.innerHTML = formattedHtml;
                 responseBox.style.display = 'block';
-            }
+              
+                // Add some basic styling
+                responseContent.classList.add('json-formatted');
+              }
+              
         });
     </script>
 </body>
