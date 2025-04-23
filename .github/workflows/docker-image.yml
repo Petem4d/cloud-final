@@ -1,4 +1,3 @@
-
 on:
   push:
     branches:
@@ -21,7 +20,6 @@ jobs:
         with:
           project_id: 'cloud-agent-457418' # update with project ID
           workload_identity_provider: 'projects/417926879009/locations/global/workloadIdentityPools/github/providers/my-repo'
-          service_account: 'syl-sum@cloud-agent-457418.iam.gserviceaccount.com'
 
         # configure/login with docker
       - name: gcloud Configure Docker
