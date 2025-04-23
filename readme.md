@@ -1,5 +1,7 @@
 # Syllabus Summarizing Project
 
+### URL https://cloud-final-417926879009.us-central1.run.app/
+
 ## The Problem
 
 When taking a full workload of up to six classes, it can feel overwhelming to keep track of all the due dates and requirements for your classes. To combat this, we've developed a tool that can summarize the syllabus page of each of your classes while including all the important dates.
@@ -24,3 +26,11 @@ When taking a full workload of up to six classes, it can feel overwhelming to ke
 ### Architecture
 
 ![Architecture Diagram](architecture.png)
+
+### Local Development
+
+1. First, make a virtual environment. Run `python3 -m venv .env` (Same for mac and windows users).
+2. To activate the virtual environment, run `source .env/bin/activate` (for mac) and `.env/Scripts/activate.bat` for windows.
+3. Now that you are in your virtual environment, we can now install our dependencies. All the required dependencies are in the `requirements.txt` folder, so run `pip install -r requirements.txt`.
+4. We now have everything we need to run our development server, so now run `uvicorn driver:app —host 0.0.0.0 —-port 8000 —-reload`.
+5. Our server is up and running at `http://localhost:8000/`
