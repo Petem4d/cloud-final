@@ -169,8 +169,6 @@
             
             <div class="file-info" id="file-info">
                 <p id="file-name"></p>
-                <p id="file-size"></p>
-                <p id="file-type"></p>
             </div>
             
             <div class="status" id="status-message"></div>
@@ -197,14 +195,11 @@
             const fileInfo = document.getElementById('file-info');
             const fileName = document.getElementById('file-name');
             const fileSize = document.getElementById('file-size');
-            const fileType = document.getElementById('file-type');
-            const fileList = document.getElementById('file-list');
             const statusMessage = document.getElementById('status-message');
             const responseBox = document.getElementById('response-box');
             const responseContent = document.getElementById('response-content');
 
 
-            // Open file selector when button is clicked
             uploadBtn.addEventListener('click', function() {
                 fileInput.click();
             });
@@ -224,7 +219,6 @@
                 })
             });
             
-            // When files are selected
             fileInput.addEventListener('change', function(e) {
                 const files = e.target.files;
         
@@ -263,22 +257,21 @@
                 .then(data => {
                     console.log(data)
                     showStatus('Files uploaded successfully!', 'success');
-                    displayResponseData(data)
+                    responseContent.innerHTML = data;
+                    responseBox.style.display = 'block';
+                    responseContent.classList.add('json-formatted');
                     fileInput.value = '';
                 })
                 .catch(error => {
-                    // Handle error
                     showStatus('Error uploading files: ' + error.message, 'error');
                 });
             }
             
-            // Show status message with appropriate styling
             function showStatus(message, type) {
                 statusMessage.textContent = message;
                 statusMessage.className = 'status ' + type;
                 statusMessage.style.display = 'block';
                 
-                // Hide status after 5 seconds if it's a success message
                 if (type === 'success') {
                     setTimeout(() => {
                         statusMessage.style.display = 'none';
@@ -288,7 +281,6 @@
             
 
             function displaySyllabiPopup(data) {
-                // Create overlay container
                 const overlay = document.createElement('div');
                 overlay.style.position = 'fixed';
                 overlay.style.top = '0';
@@ -301,7 +293,6 @@
                 overlay.style.alignItems = 'center';
                 overlay.style.zIndex = '1000';
             
-                // Create popup container
                 const popup = document.createElement('div');
                 popup.style.backgroundColor = 'white';
                 popup.style.borderRadius = '8px';
@@ -312,18 +303,15 @@
                 popup.style.position = 'relative';
                 popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
             
-                // Create title
                 const title = document.createElement('h2');
                 title.textContent = 'Past Syllabi';
                 title.style.marginTop = '0';
                 title.style.marginBottom = '20px';
                 title.style.color = '#2c3e50';
             
-                // Create content container
                 const content = document.createElement('div');
-                content.style.whiteSpace = 'pre-line'; // Preserve line breaks in text
+                content.style.whiteSpace = 'pre-line'; 
             
-                // Add syllabi data to content
                 data.forEach((syllabus, index) => {
                     const syllabusItem = document.createElement('div');
                     syllabusItem.style.marginBottom = '20px';
@@ -332,24 +320,15 @@
                     syllabusItem.style.borderRadius = '4px';
                     syllabusItem.style.borderLeft = '4px solid #27ae60';
                     
-                    // Create syllabus title if available
-                    if (syllabus.title) {
-                        const syllabusTitle = document.createElement('h3');
-                        syllabusTitle.textContent = syllabus.title;
-                        syllabusTitle.style.margin = '0 0 10px 0';
-                        syllabusTitle.style.color = '#2c3e50';
-                        syllabusItem.appendChild(syllabusTitle);
-                    } else {
-                        const syllabusNumber = document.createElement('h3');
-                        syllabusNumber.textContent = `Syllabus ${index + 1}`;
-                        syllabusNumber.style.margin = '0 0 10px 0';
-                        syllabusNumber.style.color = '#2c3e50';
-                        syllabusItem.appendChild(syllabusNumber);
-                    }
+
+                    const syllabusNumber = document.createElement('h3');
+                    syllabusNumber.textContent = `Syllabus ${index + 1}`;
+                    syllabusNumber.style.margin = '0 0 10px 0';
+                    syllabusNumber.style.color = '#2c3e50';
+                    syllabusItem.appendChild(syllabusNumber);
                     
-                    // Format and add content
-                    const syllabusContent = document.createElement('div');
-                    syllabusContent.textContent = JSON.stringify(syllabus, null, 2);
+                                        const syllabusContent = document.createElement('div');
+                    syllabusContent.textContent = syllabus
                     syllabusContent.style.lineHeight = '1.5';
                     syllabusItem.appendChild(syllabusContent);
                     
@@ -357,15 +336,12 @@
                 });
 
             
-                // Add elements to popup
                 popup.appendChild(title);
                 popup.appendChild(content);
                 
                 overlay.appendChild(popup);
-                
                 document.body.appendChild(overlay);
                 
-                // Close when clicking outside the popup
                 overlay.addEventListener('click', function(e) {
                     if (e.target === overlay) {
                         document.body.removeChild(overlay);
@@ -373,16 +349,6 @@
                 });
             }
             
-            function displayResponseData(data) {
-                const formattedData = JSON.stringify(data, null, 2);
-                
-                const formattedHtml = formattedData
-                  .replace(/\\n/g, '<br>')
-                  .replace(/"([^"]+)":/g, '<span class="json-key">"$1":</span>');
-                responseContent.innerHTML = formattedHtml;
-                responseBox.style.display = 'block';
-                responseContent.classList.add('json-formatted');
-              }
               
         });
     </script>
