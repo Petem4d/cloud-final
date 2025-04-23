@@ -23,46 +23,27 @@ import re
 
 app = FastAPI()
 
-# mount static files
-#app.mount("/static", StaticFiles(directory="/app/static"), name="static")
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="template")
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 
 def extract_text_from_html(html_content):
-    """
-    Extract only the visible text content from an HTML string.
-    
-    Args:
-        html_content (str): Raw HTML content to parse
-        
-    Returns:
-        str: Extracted visible text with preserved paragraph structure
-    """
-    # Parse the HTML with BeautifulSoup
     soup = BeautifulSoup(html_content, 'html.parser')
     
-    # Remove script, style, head, and other non-visible elements
+
     for element in soup(['script', 'style', 'head', 'title', 'meta', 'link', 'noscript', 'header', 'footer']):
         element.decompose()
     
-    # Get text and handle whitespace
     text = soup.get_text(separator=' ', strip=True)
     
-    # Remove extra whitespace
     text = re.sub(r'\s+', ' ', text)
     
-    # Handle line breaks for better readability
     for br in soup.find_all(['br', 'p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li']):
         br.append('\n')
     
-    # Get text with line breaks
     text_with_breaks = soup.get_text(separator=' ', strip=True)
     
-    # Clean up multiple line breaks
     text_with_breaks = re.sub(r'\n+', '\n', text_with_breaks)
     text_with_breaks = re.sub(r'\s+\n', '\n', text_with_breaks)
     text_with_breaks = re.sub(r'\n\s+', '\n', text_with_breaks)
@@ -75,29 +56,15 @@ syllabus_collection = db.collection("syllabi")
 
 @app.get("/")
 async def read_root(request: Request):
-
-  #  return FileResponse('index.html')
   return templates.TemplateResponse(request= request, name = "index.html")
 
 
 @app.post("/chat")
 async def chat_upload(files: List[UploadFile] = File(...)):
-    file_responses = []
 
-    # Process each uploaded file
     for file in files:
-        # Generate a unique filename to prevent overwrites
-        
-        #file_ext = os.path.splitext(file.filename)[1]
-        #unique_filename = f"{uuid.uuid4()}{file_ext}"
-        #file_path = os.path.join(UPLOAD_DIR, unique_filename)
-        
-        # Save the file
+
         content = await file.read()
-        # with open(file_path, "wb") as f:
-        #     f.write(content)
-        
-        # # Add file info to response
         # file_responses.append({
         #     "filename": file.filename,
         #     "saved_as": unique_filename,
@@ -110,23 +77,37 @@ async def chat_upload(files: List[UploadFile] = File(...)):
         model_id = "gemini-2.0-flash-001"
         prompt = """
         You are a highly skilled document summarization specialist.
-        You will be receiving a college syllabus. Your job is to summarize the syllabus in under 400 words.
+        You will be receiving a college syllabus. Your job is to summarize the syllabus in under 300 words.
         Be sure to include the grading scale and any important dates or assignments.
+        The first line of your response should be the class name.
+        The second line should be the teacher's name
+        The rest of the response should be the formatted summary.
+        If the document does not appear to be a syllabus, respond "NOT A SYLLABUS"
         """
         
         response = client.models.generate_content(
             model=model_id,
             contents=[content, prompt],
         )
-
-        syllabus_collection.add({
-            "filename": file.filename,
-            "description": response.text
-        })
+        class_name = response.text.splitlines()[0]
+        teacher = response.text.splitlines()[1]
+        description = response.text.split("\n",2)[2]
+        if(response != "NOT A SYLLABUS"):
+            syllabus_collection.add({
+                "class": class_name,
+                "teacher": teacher,
+                "description": description
+            })
         
         return response.text
 
-
-
+@app.get("/syllabi")
+async def read_root(request: Request):
+    all_syllabi = syllabus_collection.stream()
+    response_list = []
+    for doc in all_syllabi:
+        response = "CLASS: " + doc.to_dict()["class"] + "\nTeacher: " + doc.to_dict()["teacher"] + doc.to_dict()["description"] + "\n\n"
+        response_list.append(response)
+    return response_list
 
 

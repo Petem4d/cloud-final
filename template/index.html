@@ -53,6 +53,21 @@
             background-color: #2980b9;
         }
         
+        .syllabi-button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .syllabi-button:hover {
+            background-color: #219653;
+        }
+        
         #file-input {
             display: none;
         }
@@ -150,6 +165,7 @@
         <div class="upload-container">
             <input type="file" id="file-input" multiple>
             <button class="upload-button" id="upload-btn">Select Files</button>
+            <button class="syllabi-button" id="see-syllabi-btn">See Past Syllabi</button>
             
             <div class="file-info" id="file-info">
                 <p id="file-name"></p>
@@ -161,14 +177,13 @@
         </div>
         
         <div class="file-list" id="file-list">
-            <!-- Uploaded files will appear here -->
         </div>
         <div class="response-box" id="response-box">
             <div class="response-title">Server Response:</div>
             <pre class="response-content" id="response-content"></pre>
         </div>
     </div>
-    
+
     <script>
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -177,6 +192,7 @@
              });
 
             const uploadBtn = document.getElementById('upload-btn');
+            const sylButton = document.getElementById('see-syllabi-btn');
             const fileInput = document.getElementById('file-input');
             const fileInfo = document.getElementById('file-info');
             const fileName = document.getElementById('file-name');
@@ -192,65 +208,48 @@
             uploadBtn.addEventListener('click', function() {
                 fileInput.click();
             });
+
+            sylButton.addEventListener('click', function(){
+                fetch('/syllabi', {
+                    method: 'GET',
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    displaySyllabiPopup(data);
+
+                })
+            });
             
             // When files are selected
             fileInput.addEventListener('change', function(e) {
                 const files = e.target.files;
-                
+        
                 if (files.length > 0) {
-                    // Display file information
                     fileInfo.style.display = 'block';
                     
-                    // If multiple files selected, show count
                     if (files.length > 1) {
                         fileName.textContent = `Selected Files: ${files.length} files`;
-                        fileSize.textContent = `Total Size: ${formatFileSize(getTotalSize(files))}`;
-                        fileType.textContent = 'Multiple file types';
                     } else {
-                        // Show single file information
                         const file = files[0];
                         fileName.textContent = `Name: ${file.name}`;
-                        fileSize.textContent = `Size: ${formatFileSize(file.size)}`;
-                        fileType.textContent = `Type: ${file.type || 'Unknown'}`;
                     }
                     
-                    // Upload files to the /chat endpoint
                     uploadFiles(files);
                 }
             });
             
-            // Format file size to readable format
-            function formatFileSize(bytes) {
-                if (bytes === 0) return '0 Bytes';
-                
-                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(1024));
-                
-                return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
-            }
             
-            // Calculate total size of multiple files
-            function getTotalSize(files) {
-                let totalSize = 0;
-                for (let i = 0; i < files.length; i++) {
-                    totalSize += files[i].size;
-                }
-                return totalSize;
-            }
-            
-            // Upload files to the /chat endpoint
             function uploadFiles(files) {
-                // Show loading status
                 showStatus('Uploading files...', 'loading');
-                
                 const formData = new FormData();
-                
-                // Append all files to the FormData object
                 for (let i = 0; i < files.length; i++) {
                     formData.append('files', files[i]);
                 }
                 
-                // Send POST request to /chat endpoint
                 fetch('/chat', {
                     method: 'POST',
                     body: formData
@@ -262,22 +261,14 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Handle successful response
                     console.log(data)
                     showStatus('Files uploaded successfully!', 'success');
                     displayResponseData(data)
-                    // Add files to the file list
-                    for (let i = 0; i < files.length; i++) {
-                        addFileToList(files[i]);
-                    }
-                    
-                    // Reset file input
                     fileInput.value = '';
                 })
                 .catch(error => {
                     // Handle error
                     showStatus('Error uploading files: ' + error.message, 'error');
-                    console.error('Error:', error);
                 });
             }
             
@@ -295,32 +286,101 @@
                 }
             }
             
-            // Add a file to the file list
-            function addFileToList(file) {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
+
+            function displaySyllabiPopup(data) {
+                // Create overlay container
+                const overlay = document.createElement('div');
+                overlay.style.position = 'fixed';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.width = '100%';
+                overlay.style.height = '100%';
+                overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                overlay.style.display = 'flex';
+                overlay.style.justifyContent = 'center';
+                overlay.style.alignItems = 'center';
+                overlay.style.zIndex = '1000';
+            
+                // Create popup container
+                const popup = document.createElement('div');
+                popup.style.backgroundColor = 'white';
+                popup.style.borderRadius = '8px';
+                popup.style.padding = '20px';
+                popup.style.maxWidth = '80%';
+                popup.style.maxHeight = '80%';
+                popup.style.overflow = 'auto';
+                popup.style.position = 'relative';
+                popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+            
+                // Create title
+                const title = document.createElement('h2');
+                title.textContent = 'Past Syllabi';
+                title.style.marginTop = '0';
+                title.style.marginBottom = '20px';
+                title.style.color = '#2c3e50';
+            
+                // Create content container
+                const content = document.createElement('div');
+                content.style.whiteSpace = 'pre-line'; // Preserve line breaks in text
+            
+                // Add syllabi data to content
+                data.forEach((syllabus, index) => {
+                    const syllabusItem = document.createElement('div');
+                    syllabusItem.style.marginBottom = '20px';
+                    syllabusItem.style.padding = '15px';
+                    syllabusItem.style.backgroundColor = '#f9f9f9';
+                    syllabusItem.style.borderRadius = '4px';
+                    syllabusItem.style.borderLeft = '4px solid #27ae60';
+                    
+                    // Create syllabus title if available
+                    if (syllabus.title) {
+                        const syllabusTitle = document.createElement('h3');
+                        syllabusTitle.textContent = syllabus.title;
+                        syllabusTitle.style.margin = '0 0 10px 0';
+                        syllabusTitle.style.color = '#2c3e50';
+                        syllabusItem.appendChild(syllabusTitle);
+                    } else {
+                        const syllabusNumber = document.createElement('h3');
+                        syllabusNumber.textContent = `Syllabus ${index + 1}`;
+                        syllabusNumber.style.margin = '0 0 10px 0';
+                        syllabusNumber.style.color = '#2c3e50';
+                        syllabusItem.appendChild(syllabusNumber);
+                    }
+                    
+                    // Format and add content
+                    const syllabusContent = document.createElement('div');
+                    syllabusContent.textContent = JSON.stringify(syllabus, null, 2);
+                    syllabusContent.style.lineHeight = '1.5';
+                    syllabusItem.appendChild(syllabusContent);
+                    
+                    content.appendChild(syllabusItem);
+                });
+
+            
+                // Add elements to popup
+                popup.appendChild(title);
+                popup.appendChild(content);
                 
-                const fileDetails = document.createElement('div');
-                fileDetails.textContent = `${file.name} (${formatFileSize(file.size)})`;
+                overlay.appendChild(popup);
                 
-                fileItem.appendChild(fileDetails);
-                fileList.appendChild(fileItem);
+                document.body.appendChild(overlay);
+                
+                // Close when clicking outside the popup
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === overlay) {
+                        document.body.removeChild(overlay);
+                    }
+                });
             }
+            
             function displayResponseData(data) {
-                // Format the JSON data with indentation for better readability
                 const formattedData = JSON.stringify(data, null, 2);
                 
-                // Replace escaped newlines with actual HTML line breaks
                 const formattedHtml = formattedData
                   .replace(/\\n/g, '<br>')
-                  // Also highlight keys for better readability
                   .replace(/"([^"]+)":/g, '<span class="json-key">"$1":</span>');
-                
-                // Set the content as HTML and show the response box
                 responseContent.innerHTML = formattedHtml;
                 responseBox.style.display = 'block';
-              
-                // Add some basic styling
                 responseContent.classList.add('json-formatted');
               }
               
