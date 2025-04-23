@@ -12,7 +12,7 @@ When taking a full workload of up to six classes, it can feel overwhelming to ke
 - The user is authenticated using Google's OAuth2
 - Gemini is utilized as the LLM and called using Vertex AI
 - The frontend is developed with Vanilla HTML/CSS and javascript
-- A docker image of the file is stored in Googles Artifact Registry and deployed using cloud run
+- A docker image of the file is stored in Googles Artifact Registry and deployed using cloud run and automated (on every push to main) using github actions workflow
 - All responses are stored in a firestore database
 
 ### Workflow
