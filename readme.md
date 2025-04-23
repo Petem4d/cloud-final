@@ -9,11 +9,11 @@ When taking a full workload of up to six classes, it can feel overwhelming to ke
 ### Tech Stack (GCP Services in Bold)
 
 - The web application is built in Python using FastAPI
-- The user is authenticated using Google's **OAuth2**
+- The user is authenticated using Google's OAuth2 with the **Google Cloud Identity Platform**
 - Gemini is utilized as the LLM and called using **Vertex AI**
 - The frontend is developed with Vanilla HTML/CSS and javascript
 - A docker image of the file is stored in **Googles Artifact Registry** and deployed using **Cloud Run** and automated (on every push to main) using github actions workflow
-- All responses are stored in a **firestore database**
+- All responses are stored in a **Firestore Database**
 
 ### Workflow
 
