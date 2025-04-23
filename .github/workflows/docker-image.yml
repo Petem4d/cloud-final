@@ -40,11 +40,11 @@ jobs:
           push: true
           tags: us-central1-docker.pkg.dev/cloud-agent-457418/cloud-final/app:v1
 
-      - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy cloud-final \
-          --allow-unauthenticated \
-          --image us-central1-docker.pkg.dev/cloud-agent-457418/cloud-final/app:v1 \
-          --service-account syl-sum@cloud-agent-457418.iam.gserviceaccount.com \
-          --region us-central1 \
-          --port 8000
+      # - name: Deploy to Cloud Run
+      #   run: |
+      #     gcloud run deploy cloud-final \
+      #     --allow-unauthenticated \
+      #     --image us-central1-docker.pkg.dev/cloud-agent-457418/cloud-final/app:v1 \
+      #     --service-account syl-sum@cloud-agent-457418.iam.gserviceaccount.com \
+      #     --region us-central1 \
+      #     --port 8000
